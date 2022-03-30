@@ -1,4 +1,16 @@
-data/
+data/test*
+data/train*
+data/UN-english.txt.gz
+data/SVM_100000.pickle
+data/MultinomialNB_500000.pickle
+
 __pycache__/
 .idea/
 .ipynb_checkpoints/
+
+# Latex
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.synctex.gz

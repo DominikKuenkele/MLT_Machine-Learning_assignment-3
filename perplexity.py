@@ -1,3 +1,11 @@
+"""
+This script will calculate the perplexity of a trained model, given a test corpus.
+
+Example:
+    python perplexity.py data/UN-english.txt.gz data/SVM_5000.pickle --lines 10000 --random-lines False
+"""
+
+
 import argparse
 import math
 import pickle
@@ -22,6 +30,8 @@ def load_model(model_file):
 
 
 def create_df(samples, vector_features):
+    # dataframe needs to be build differently than in sample.py since vector needs to have the same features as the
+    # trained model.
     vectors = []
     classes = []
 
@@ -42,10 +52,11 @@ def get_log_probabilities(model, test_vectors, correct_classes):
     all_probs = model.predict_log_proba(test_vectors)
     for index, sample_probs in enumerate(all_probs):
         correct_class = correct_classes[index]
+        # sklearn uses log to the base e, so it needs to be converted to base 2, to be used in perplexity formula
         if correct_class in model_classes:
-            correct_probs.append(sample_probs[model_classes.index(correct_class)])
+            correct_probs.append(sample_probs[model_classes.index(correct_class)] / math.log(2, math.e))
         else:
-            correct_probs.append(math.log(1 / len(test_vectors)))
+            correct_probs.append(math.log(1 / len(test_vectors), 2))
     return correct_probs
 
 
@@ -55,31 +66,34 @@ def encode_classes(classes, all_classes):
 
 def perplexity(model, test_vectors, correct_classes, all_classes):
     if isinstance(model, MultinomialNB):
+        # MultinomialNB requires numerical classes
         correct_classes = encode_classes(correct_classes, all_classes)
 
     probs = get_log_probabilities(model, test_vectors, correct_classes)
-    return 2 ** -(sum(probs)/len(test_vectors))
+    return 2 ** -(sum(probs) / len(test_vectors))
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('test_corpus', type=str, nargs=1, help='A pickle file containing test samples')
-    parser.add_argument('model_file', type=str, nargs=1, help='A pickle file containing the model')
+    parser = argparse.ArgumentParser(description='Calculate the perplexity of a model given a test corpus.')
+    parser.add_argument('test_corpus', type=str, nargs=1, help='A .txt.gz archive containing the test corpus')
+    parser.add_argument('model_file', type=str, nargs=1,
+                        help='A .pickle file containing the model and the feature vector')
     parser.add_argument('--average', choices=['micro', 'macro'], default='macro',
-                        help='defines how average should be calculated')
-    parser.add_argument('--lines', type=int, default=1000,
-                        help='defines how average should be calculated')
-    parser.add_argument('--samples', type=int, default=1000,
-                        help='defines how average should be calculated')
+                        help='defines how the average for precision, recall and f1-score should be calculated '
+                             '(default: macro)')
+    parser.add_argument('--lines', type=int, default=-1,
+                        help='number of lines to use from the file. -1 for all lines (default: -1)')
+    parser.add_argument('--random-lines', type=bool, default=True,
+                        help='determines, if lines from corpus should be selected randomly or from the start of file')
 
     args = parser.parse_args()
 
     model, vector_features, classes = load_model(args.model_file[0])
 
-    sentences = sample_lines(args.test_corpus[0], args.lines)
+    sentences = sample_lines(args.test_corpus[0], args.lines, args.random_lines)
     processed = process_sentences(sentences)
-    samples = create_samples(processed, args.samples)
+    samples = create_samples(processed, -1)
 
     test_vectors, test_classes = create_df(samples, vector_features)
 
-    print(perplexity(model, test_vectors, test_classes, classes))
+    print('Perplexity:', perplexity(model, test_vectors, test_classes, classes))
