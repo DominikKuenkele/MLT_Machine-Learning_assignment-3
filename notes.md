@@ -27,8 +27,8 @@ trained on up to 100000 samples.
 | **5.000**   | 0.215    | 0.08966   | 0.08493 | 0.07303  | 12.45      |
 | **10.000**  | 0.218    | 0.11291   | 0.09495 | 0.08661  | 12.28      |
 | **20.000**  | 0.21525  | 0.09664   | 0.08463 | 0.07008  | 12.21      |
-| **50.000**  | 0.2088   | 0.12640   | 0.07565 | 0.06159  |            |
-| **100.000** | 0.221    | 0.13763   | 0.07793 | 0.06446  |            |
+| **50.000**  | 0.2088   | 0.12640   | 0.07565 | 0.06159  | 12.20      |
+| **100.000** | 0.221    | 0.13763   | 0.07793 | 0.06446  | 12.21      |
 | **500.000** | -        | -         | -       | -        | -          |
 
 
@@ -54,4 +54,4 @@ The recall (and therefore the f1 score) on the other hand is clearly getting wor
 Looking at the accuracy, both methods perform very similar. But for the precision and recall (and f1 score), the multinomial
 NB performs better, especially when using many samples for training and testing.
 The SVM can outperform the multinomial NB in the perplexity with only few samples. Increasing the sample size, both methods
-perform more and more similar.
+perform more and more similar. For a very high sample size, the multinomial NB even surpasses the SVM.
